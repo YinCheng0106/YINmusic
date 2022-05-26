@@ -1,276 +1,291 @@
-const { Client } = require('discord.js');
+const Discord = require('discord.js');
+const client = new Discord.Client();
 const ytdl = require('ytdl-core');
-const { token } = require('./setting.json');
-const { prefix } = require('./config.json');
-const client = new Client();
+const ytpl = require('ytpl');
+const {token} = require('./setting.json');
+const prefix = require('./config.json');
 
-// 建立一個類別來管理 Property 及 Method
-class Music {
 
-    constructor() {
-        /**
-         * 下面的物件都是以 Discord guild id 當 key，例如：
-         * this.isPlaying = {
-         *     724145832802385970: false
-         * }
-         */
+//#region 登入
+client.on('ready',() => {
+    console.log('>>機器人啟動完成<<');
+});
+//#endregion
 
-        /**
-         * 機器人是否正在播放音樂
-         * this.isPlaying = {
-         *     724145832802385970: false
-         * }
-         */
-        this.isPlaying = {};
-
-        /**
-         * 等待播放的音樂隊列，例如：
-         * this.queue = {
-         *     724145832802385970: [{
-         *         name: 'G.E.M.鄧紫棋【好想好想你 Missing You】Official Music Video',
-         *         url: 'https://www.youtube.com/watch?v=P6QXo88IG2c&ab_channel=GEM%E9%84%A7%E7%B4%AB%E6%A3%8B'
-         *     }]
-         * }
-         */
-        this.queue = {};
-
-        // https://discord.js.org/#/docs/main/stable/class/VoiceConnection
-        this.connection = {};
-
-        // https://discord.js.org/#/docs/main/stable/class/StreamDispatcher
-        this.dispatcher = {};
+//#region 事件
+client.on('message',msg =>{
+    try {
+        if (!msg.guild || !msg.member) return;
+        if (!msg.member.user) return;
+        if (msg.member.user.bot) return;
+    } catch (err){
+        return;
     }
 
-    async join(msg) {
-
-        // 如果使用者正在頻道中
-        if (msg.member.voice.channel !== null) {
-            // Bot 加入語音頻道
-            this.connection[msg.guild.id] = await msg.member.voice.channel.join();
-        } else {
-            msg.channel.send('請先進入語音頻道');
-        }
-
-    }
-
-    async play(msg) {
-
-        // 語音群的 ID
-        const guildID = msg.guild.id;
-
-        // 如果 Bot 還沒加入該語音群的語音頻道
-        if (!this.connection[guildID]) {
-            msg.channel.send('請先將機器人 `!!join` 加入頻道');
-            return;
-        }
-
-        // 如果 Bot leave 後又未加入語音頻道
-        if (this.connection[guildID].status === 4) {
-            msg.channel.send('請先將機器人 `!!join` 重新加入頻道');
-            return;
-        }
-
-        // 處理字串，將 !!play 字串拿掉，只留下 YouTube 網址
-        const musicURL = msg.content.replace(`${prefix}play`, '').trim();
-
-        try {
-
-            // 取得 YouTube 影片資訊
-            const res = await ytdl.getInfo(musicURL);
-            const info = res.videoDetails;
-
-            // 將歌曲資訊加入隊列
-            if (!this.queue[guildID]) {
-                this.queue[guildID] = [];
+    try {
+        let tempPrefix = '-1';
+        const prefixED = Object.keys(prefix); 
+        prefixED.forEach(element => {
+            if (msg.content.substring(0, prefix[element].Value.length) === prefix[element].Value) {
+                tempPrefix = element;
             }
-
-            this.queue[guildID].push({
-                name: info.title,
-                url: musicURL
-            });
-
-            // 如果目前正在播放歌曲就加入隊列，反之則播放歌曲
-            if (this.isPlaying[guildID]) {
-                msg.channel.send(`歌曲加入隊列：${info.title}`);
-            } else {
-                this.isPlaying[guildID] = true;
-                this.playMusic(msg, guildID, this.queue[guildID][0]);
-            }
-
-        } catch(e) {
-            console.log(e);
-        }
-
-    }
-
-    playMusic(msg, guildID, musicInfo) {
-
-        // 提示播放音樂
-        msg.channel.send(`播放音樂：${musicInfo.name}`);
-
-        // 播放音樂
-        this.dispatcher[guildID] = this.connection[guildID].play(ytdl(musicInfo.url, { filter: 'audioonly' }));
-
-        // 把音量降 50%，不然第一次容易被機器人的音量嚇到 QQ
-        this.dispatcher[guildID].setVolume(0.5);
-
-        // 移除 queue 中目前播放的歌曲
-        this.queue[guildID].shift();
-
-        // 歌曲播放結束時的事件
-        this.dispatcher[guildID].on('finish', () => {
-
-            // 如果隊列中有歌曲
-            if (this.queue[guildID].length > 0) {
-                this.playMusic(msg, guildID, this.queue[guildID][0]);
-            } else {
-                this.isPlaying[guildID] = false;
-                msg.channel.send('目前沒有音樂了，請加入音樂 :D');
-            }
-
         });
 
-    }
 
-    resume(msg) {
-
-        if (this.dispatcher[msg.guild.id]) {
-            msg.channel.send('恢復播放');
-
-            // 恢復播放
-            this.dispatcher[msg.guild.id].resume();
+        switch (tempPrefix) {
+            case '0': //文字回應功能
+                BasicFunction(msg, tempPrefix);
+                break;
+            case '1': //音樂指令 
+                MusicFunction(msg);
+                break;
+        }       
+        switch (cmd[0]) {
+            case 'myAvatar':
+                const avatar = GetMyAvatar(msg);
+                if (avatar.files) msg.channel.send(`${msg.author}`, avatar);
+    
+            break;
         }
-
+        
+    } catch (err) {
+        console.log('OnMessageError', err);   
     }
+});
+//#endregion
 
-    pause(msg) {
-
-        if (this.dispatcher[msg.guild.id]) {
-            msg.channel.send('暫停播放');
-
-            // 暫停播放
-            this.dispatcher[msg.guild.id].pause();
-        }
-
+//#region function
+function GetMyAvatar(msg) {
+    try {
+        return {
+            files: [{
+                attachment: msg.author.displayAvatarURL('png', true),
+                name: 'avatar.png'
+            }]
+        };
+    } catch (err) {
+        console.log('GetMyAvatar,Error');
     }
+}
+//#endregion
 
-    skip(msg) {
+//#region 音樂系統
+let dispatcher = new Map();
 
-        if (this.dispatcher[msg.guild.id]) {
-            msg.channel.send('跳過目前歌曲');
+let musicList = new Map();
 
-            // 跳過歌曲
-            this.dispatcher[msg.guild.id].end();
-        }
+function MusicFunction(msg) {
+    const content = msg.content.substring(prefix[1].Value.length);
+    const splitText = ' ';
+    const contents = content.split(splitText);
+    const guildID = msg.guild.id;
 
-    }
-
-    nowQueue(msg) {
-
-        // 如果隊列中有歌曲就顯示
-        if (this.queue[msg.guild.id] && this.queue[msg.guild.id].length > 0) {
-            // 字串處理，將 Object 組成字串
-            const queueString = this.queue[msg.guild.id].map((item, index) => `[${index+1}] ${item.name}`).join();
-            msg.channel.send(queueString);
-        } else {
-            msg.channel.send('目前隊列中沒有歌曲');
-        }
-
-    }
-
-    leave(msg) {
-
-        // 如果機器人在頻道中
-        if (this.connection[msg.guild.id] && this.connection[msg.guild.id].status === 0) {
-
-            // 如果機器人有播放過歌曲
-            if (this.queue.hasOwnProperty(msg.guild.id)) {
-
-                // 清空播放列表
-                delete this.queue[msg.guild.id];
-
-                // 改變 isPlaying 狀態為 false
-                this.isPlaying[msg.guild.id] = false;
-            }
-
-            // 離開頻道
-            this.connection[msg.guild.id].disconnect();
-        } else {
-            msg.channel.send('機器人未加入任何頻道');
-        }
-
+    switch (contents[0]) {
+        case 'play':
+            playMusic(guildID, msg, contents);
+            break;
+        case 'replay':
+            break;
+        case 'np':
+            nowPlayMusic(guildID, msg.channel.id);
+            break;
+        case 'queue':
+            queueShow(guildID, msg.channel.id);
+            break;
+        case 'skip':
+            skipMusic(guildID);
+            break;
+        case 'disconnect':
+            disconnectMusic(guildID, msg.channel.id);
+            break;
+        case 'playList':
+            playListMusic(guildID, msg);
+            break;
     }
 }
 
-const music = new Music();
+async function playMusic(guildID, msg, contents) {
 
-// 當 Bot 接收到訊息時的事件
-client.on('message', async (msg) => {
+    const urlED = contents[1];
+    try {
+        if (urlED.substring(0, 4) !== 'http') return msg.reply('請輸入有效連結:1');
+        const validate = await ytdl.validateURL(urlED);
+        if (!validate) return msg.reply('請輸入有效連結:2');
+        const info = await ytdl.getInfo(urlED);
+        if (info.videoDetails) {
+            if (msg.member.voice.channel) {
+                if (!client.voice.connections.get(msg.guild.id)) {
+                    musicList.set(guildID,new Array());
+                    musicList.get(guildID).push(urlED);
 
-    // 如果發送訊息的地方不是語音群（可能是私人），就 return
-    if (!msg.guild) return;
-
-    // !!join
-    if (msg.content === `${prefix}join`) {
-
-        // 機器人加入語音頻道
-        music.join(msg);
+                    msg.member.voice.channel.join()
+                        .then(connection => {
+                            msg.reply('來了~');
+                            //const guildID = msg.guild.id;
+                            const channelID = msg.channel.id;
+                            playMusic2(connection, guildID, channelID);
+                        })
+                        .catch(err => {
+                            msg.reply('bot進入語音頻道時發生錯誤，請再試一次');
+                            console.log(err, 'playMusicError2');
+                        })
+                } else {
+                    musicList.get(guildID).push(urlED);
+                    msg.reply('已將歌曲加入歌單!');
+                }
+            } else return msg.reply('請先進入頻道:3...');
+        } else return msg.reply('請輸入有效連結:3');
+    } catch (err) {
+        console.log(err, 'playMusicError');
     }
+}
 
-    // 如果使用者輸入的內容中包含 !!play
-    if (msg.content.indexOf(`${prefix}play`) > -1) {
+async function playMusic2(connection, guildID, channelID) {
+    try {
+        if (musicList.get(guildID).length > 0) {
+            const streamOptions = {
+                seek: 0,
+                volume: 0.5,
+                Bitrate: 192000,
+                Passes: 1,
+                highWaterMark: 1
+            };
+            const stream = await ytdl(musicList.get(guildID)[0],{
+                filter: 'audioonly',
+                quality: 'highestaudio',
+                highWaterMark: 26214400 //25ms
+            })
 
-        // 如果使用者在語音頻道中
-        if (msg.member.voice.channel) {
+            dispatcher.set(guildID,connection.play(stream, streamOptions));
+            dispatcher.get(guildID).on("finish", finish => {
+                if (musicList.get(guildID).length > 0) musicList.get(guildID).shift();
+                playMusic2(connection, guildID ,channelID);
+            })
+        } else disconnectMusic(guildID, channelID);
+    } catch (err) {
+        console.log(err, 'playMusic2Error');
+}
+}
 
-            // 播放音樂
-            await music.play(msg);
+function disconnectMusic(guildID, channelID) {
+    try {
+        if (client.voice.connections.get(guildID)) {
+            musicList.set(guildID,new Array());
+            client.voice.connections.get(guildID).disconnect();
+            client.channels.fetch(channelID).then(channel => channel.send('音樂已結束或中斷'));
+        } else client.channels.fetch(channelID).then(channel => channel.send('可是..我還沒進來'))
+    } catch (err) {
+        console.log(err, 'disconnectMusicError');
+    }
+}
+
+function skipMusic(guildID){
+    if (dispatcher.get(guildID) !== undefined) dispatcher.get(guildID).end();
+}
+
+// 重播歌曲
+function replayMusic(guildID) {
+    if (musicList.get(guildID).length > 0) {
+        musicList.get(guildID).unshift(musicList[0]);
+        if (dispatcher.get(guildID) !== undefined) dispatcher.get(guildID).end();
+    }
+}
+
+async function queueShow(guildID, channelID) {
+    try {
+        if (musicList.get(guildID).length > 0) {
+            let info;
+            let message = '';
+            for (i = 0; i < musicList.get(guildID).length; i++) {
+                info = await ytdl.getInfo(musicList.get(guildID)[i]);
+                author = info.videoDetails.ownerChannelName;
+                title = info.videoDetails.title;
+                songLength = info.videoDetails.lengthSeconds
+                const H = parseInt(songLength/3600);
+                const M = parseInt((songLength-(60*H))/60);
+                const S = parseInt(songLength%60);
+                message = message + `\n[${i+1}] *${author}*｜ **${title}** (\`${H}:${M}:${S}\`)`;
+            }
+            message = message.substring(1, message.length);
+            if (message.length > 1900) message =message.substring(0, 1900);
+            client.channels.fetch(channelID).then(channel => channel.send(message))
+        }
+    } catch (err) {
+        console.log(err, 'queueShowError');
+    }
+}
+
+async function nowPlayMusic(guildID,channelID) {
+    try {
+        if (dispatcher.get(guildID) !== undefined && musicList.get(guildID).length > 0) {
+            const info = await ytdl.getInfo(musicList.get(guildID)[0]);
+            const author = info.videoDetails.ownerChannelName;
+            const title = info.videoDetails.title;
+            const songLength = info.videoDetails.lengthSeconds;
+            //songLength
+            const H = parseInt(songLength/3600);
+            const M = parseInt((songLength-(60*H))/60);
+            const S = parseInt(songLength%60);
+            
+            const nowSongLength = Math.floor(dispatcher.get(guildID).streamTime / 1000);
+            //nowSongLength
+            const h = parseInt(nowSongLength/3600);
+            const m = parseInt((nowSongLength-(60*H))/60);
+            const s = parseInt(nowSongLength%60);
+            const message = `頻道：${author}\n歌曲名稱：${title} 曲目時間：\`${H}:${M}:${S}\`\n${streamString(songLength,nowSongLength)} \`${h}:${m}:${s}\/${H}:${M}:${S}\``
+            client.channels.fetch(channelID).then(channel => channel.send(message))
+        }
+    } catch (err) {
+        console.log(err, 'nowPlayMusicError');
+    }
+}
+
+function streamString(songLength, nowSongLength) {
+    let mainText = '🔘';
+    const secondText = '▬';
+    const whereMain = Math.floor((nowSongLength / songLength) * 100);
+    let message = '';
+    for (i = 1 ; i <= 10 ; i++) {
+        if (i * 9.9 + 1 >= whereMain) {
+            message = message +mainText;
+            mainText =secondText;
         } else {
-
-            // 如果使用者不在任何一個語音頻道
-            msg.reply('你必須先加入語音頻道');
+            message = message +secondText;
         }
     }
+    return message;
+}
 
-    // !!resume
-    if (msg.content === `${prefix}resume`) {
-
-        // 恢復音樂
-        music.resume(msg);
+async function playListMusic(guildID, msg) {
+    try {
+        if (!client.voice.connections.get(guildID)) {
+            msg.channel.send(`請先正常啟用音樂指令後，再使用歌單載入喔`);
+            return false;
+        }
+        const valueED = msg.content.split(' ');
+        const canPlay = await ytpl.validateID(valueED[1]);
+        let a = 0;
+        let b = 0;
+        if (canPlay) {
+            const listED = await ytpl(valueED[1]);
+            await listED.items.forEach(async function(element) {
+                a = a + 1;
+                if (element.title !== '[Deleted video]') {
+                    canPlay2 = await ytdl.validateURL(element.url_simple);
+                    if (canPlay2) {
+                        b = b + 1;
+                        musicList.get(guildID).push(element.url_simple);
+                    }
+                }
+            });
+            msg.channel.send(`播放清單： ${listED.title}\n 共載入 \`${b}\` 首歌曲，\`${a-b}\` 首載入失敗`);
+        } else {
+            msg.channel.send(`This Url isn't working in function.`);
+        }
+    } catch (err) {
+        console.log(err, 'playListMusicError');
     }
-
-    // !!pause
-    if (msg.content === `${prefix}pause`) {
-
-        // 暫停音樂
-        music.pause(msg);
-    }
-
-    // !!skip
-    if (msg.content === `${prefix}skip`) {
-
-        // 跳過音樂
-        music.skip(msg);
-    }
-
-    // !!queue
-    if (msg.content === `${prefix}queue`) {
-
-        // 查看隊列
-        music.nowQueue(msg);
-    }
-
-    // !!leave
-    if (msg.content === `${prefix}leave`) {
-
-        // 機器人離開頻道
-        music.leave(msg);
-    }
-});
-
-// 連上線時的事件
-client.on('ready', () => {
-    console.log(`Logged in as ${client.user.tag}!`);
-});
+}
+//#endregion
 
 client.login(token);
