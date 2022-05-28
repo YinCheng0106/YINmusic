@@ -7,10 +7,13 @@ module.exports.run = async (client, message, args, queue, searcher) => {
     if(message.member.voice.channel != message.guild.me.voice.channel)
         return message.channel.send("❓｜你不在機器人所在的語音");
     
+    
     let currentPage = 0;
 
     const embeds = embedsGenerator(serverQueue);
-    
+
+    if(embeds.length === 0)
+        return message.channel.send("🈳｜待播清單是空的");
 
     const queueEmbed = await message.channel.send(`📜｜待播清單 ${currentPage +1}/${embeds.length}`, embeds[currentPage])
     await queueEmbed.react('⬅️');
@@ -53,5 +56,5 @@ function embedsGenerator(serverQueue) {
 
 module.exports.config = {
     name: "queue",
-    aliases: ["q", "qu"]
+    aliases: ["q", "qu","Q","QU","QUEUE"]
 }

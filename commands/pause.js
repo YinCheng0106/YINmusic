@@ -12,5 +12,5 @@ module.exports.run = async (client, message, args, queue, searcher) => {
 
 module.exports.config = {
     name: "pause",
-    aliases: ["ps"]
+    aliases: ["ps","PS","PAUSE"]
 }

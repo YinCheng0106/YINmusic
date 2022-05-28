@@ -36,5 +36,5 @@ module.exports.run = async (client, message, args, queue, searcher) => {
 
 module.exports.config = {
     name: "loop",
-    aliases: ["lo","lop","lp"]
+    aliases: ["lo","lop","lp","LO","LOP","LP","LOOP"]
 }

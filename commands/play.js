@@ -15,9 +15,7 @@ module.exports.run = async (client, message, args, queue, searcher) => {
             playlist.items.forEach(async item => {
                 await videoHander(await ytdl.getInfo(item.shortUrl), message, vc, true);
             })
-            message.channel.send(`✅｜播放清單 **${playlist.title}** 加入完成`)
         })
-        
     }
     else {
         let result = await searcher.search(args.join(" "), {type: "video"})
@@ -26,7 +24,8 @@ module.exports.run = async (client, message, args, queue, searcher) => {
         let songInfo = await ytdl.getInfo(result.first.url);
         return videoHander(songInfo, message, vc)
     }
-    
+    message.channel.send(`✅｜播放清單 **${playlist.title}** 加入完成`)
+
     async function videoHander(songInfo, message, vc, playlist = false) {
         clearTimeout(timer);
         const serverQueue = queue.get(message.guild.id);
@@ -66,13 +65,13 @@ module.exports.run = async (client, message, args, queue, searcher) => {
             if(serverQueue.songs.length === 1)
                 play(message.guild, serverQueue.songs[0])
             
-            if(playlist) return undefined;
+            if(playlist) return;
 
             let dur = `\`${parseInt(song.vLength / 60)}:${song.vLength - 60 * parseInt(song.vLength / 60)}\``
             let msg = new Discord.MessageEmbed()
                 .setTitle("✅｜曲目已加入")
                 .addField(song.title, "______")
-                .addField("曲目時長："+dur)
+                .addField("曲目時長："+ dur)
                 .setThumbnail(song.thumbnail)
                 .setColor("BLUE")
             return message.channel.send(msg);
@@ -117,5 +116,5 @@ module.exports.run = async (client, message, args, queue, searcher) => {
 
 module.exports.config = {
     name : 'play',
-    aliases : ["p", "pl"]
+    aliases : ["p", "pl","P","PL","PLAY"]
 }
