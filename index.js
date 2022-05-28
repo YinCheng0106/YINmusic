@@ -1,7 +1,7 @@
 const Discord = require('discord.js');
 const client = new Discord.Client();
 const ytdl = require('ytdl-core');
-const {token} = require('./setting.json');
+//const {token} = require('./setting.json');
 const { YTSearcher } = require('ytsearcher');
 const fs =require('fs');
 
