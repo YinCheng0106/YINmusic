@@ -13,7 +13,7 @@ const searcher = new YTSearcher({
     revealed: true
 });
 
-fs.readdir("./YINLA_JS/commands/", (e, f) => {
+fs.readdir("./commands/", (e, f) => {
     if(e) return console.error(e);
     f.forEach(file => {
         if(!file.endsWith(".js")) return
