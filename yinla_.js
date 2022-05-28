@@ -9,7 +9,7 @@ client.commands = new Discord.Collection();
 client.aliases = new Discord.Collection();
 
 const searcher = new YTSearcher({
-    key: "AIzaSyAUNPPXx3THzhHWJKto9Byodan1pS2D2TI",
+    key: process.env.yt_api,
     revealed: true
 });
 
@@ -50,4 +50,4 @@ client.on("message", message =>{
     }
 })
 
-client.login(token);
+client.login(process.env.token);
