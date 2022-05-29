@@ -28,11 +28,15 @@ module.exports.run = async (client, message, args, queue, searcher) => {
         let result = await searcher.search(args.join(" "), {type: "video"})
         if(result.first == null)
             return message.channel.send("❌｜此播放清單無效");
-        let songInfo = await ytdl.getInfo(result.first.url);
-        return videoHander(songInfo, message, vc)
+        try {
+            let songInfo = await ytdl.getInfo(result.first.url);
+            return videoHandler(songInfo, message, vc)
+            }catch(err){
+                message.channel.send(`Cannot queue song :c \n ${err} `)
+                console.log(err)
+            }
+    //message.channel.send(`✅｜播放清單 **${playlist.title}** 加入完成`)
     }
-    message.channel.send(`✅｜播放清單 **${playlist.title}** 加入完成`)
-
     async function videoHander(songInfo, message, vc, playlist = false) {
         clearTimeout(timer);
         const serverQueue = queue.get(message.guild.id);
