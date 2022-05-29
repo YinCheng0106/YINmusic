@@ -17,7 +17,7 @@ module.exports.run = async (client, message, args, queue, searcher) => {
             await ytpl(url).then(async playlist => {
                 message.channel.send(`📡｜正在加入播放清單 **${playlist.title}**`)
                 playlist.items.forEach(async item => {
-                    await videoHandler(await ytdl.getInfo(item.shortUrl), message, vc, true);
+                    await videoHander(await ytdl.getInfo(item.shortUrl), message, vc, true);
                 })
             })
         }catch(err){
