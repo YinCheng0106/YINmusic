@@ -36,21 +36,24 @@ client.on('ready',() => {
     console.log('>>機器人啟動完成<<');
 });
 
-client.on("message", message =>{
-    const prefix ="!";
-    const serverQueue = queue.get(message.guild.id);
-    const args = message.content.slice(prefix.length).trim().split(/ +/g);
+client.on("message", async(message) => {
+    const prefix = '!';
+
+    if(!message.content.startsWith(prefix)) return
+    
+    const args = message.content.slice(prefix.length).trim().split(/ +/g)
     const command = args.shift().toLowerCase();
 
-    const cmd = client.commands.get(command) || client.commands.get(client.aliases.get(command)); 
-    
+    const cmd = client.commands.get(command) || client.commands.get(client.aliases.get(command));
+
     if(!cmd) return
 
     try {
         cmd.run(client, message, args, queue, searcher);
-    } catch (err){
+    }catch (err){
         return console.error(err)
     }
+        
 })
 
 client.login(process.env.token);

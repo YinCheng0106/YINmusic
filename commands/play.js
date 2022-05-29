@@ -82,8 +82,8 @@ module.exports.run = async (client, message, args, queue, searcher) => {
             let msg = new Discord.MessageEmbed()
                 .setTitle("✅｜曲目已加入")
                 .addField(song.title, "-----------")
-                .addField("曲目時長：", dur)
-                .addField("Song Place", serverQueue.songs.lastIndexOf(song) + 1)
+                .addField("曲目時長："+ dur)
+                .addField("待播" + serverQueue.songs.lastIndexOf(song) + "首")
                 .setThumbnail(song.thumbnail)
                 .setColor("BLUE")
             return message.channel.send(msg);
@@ -118,7 +118,7 @@ module.exports.run = async (client, message, args, queue, searcher) => {
             let msg = new Discord.MessageEmbed()
                 .setTitle("🎵｜正在播放")
                 .addField(serverQueue.songs[0].title, "-----------")
-                .addField("曲目時長：", dur)
+                .addField("曲目時長："+ dur)
                 .setThumbnail(serverQueue.songs[0].thumbnail)
                 .setColor("BLUE")
             return message.channel.send(msg);
