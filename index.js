@@ -34,6 +34,7 @@ const queue = new Map();
 
 client.on('ready',() => {
     console.log('>>機器人啟動完成<<');
+/*
     client.user.setPresence({
         status: "dnd",
         game: {
@@ -41,6 +42,7 @@ client.on('ready',() => {
             type: "PLAYING"
         }
     });
+*/
 });
 
 client.on("message", async(message) => {
