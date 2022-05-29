@@ -7,15 +7,22 @@ module.exports.run = async (client, message, args, queue, searcher) => {
     const vc = message.member.voice.channel;
     if(!vc)
         return message.channel.send("❓｜你必須在語音頻道");
+
+    if (args.length < 1)
+        return message.channel.send("❓｜請輸入連結或關鍵字")
     
     let url = args.join("")
     if(url.match(/^https?:\/\/(www.youtube.com|youtube.com)\/playlist(.*)$/)){
-        await ytpl(url).then(async playlist => {
-            message.channel.send(`📡｜正在加入播放清單 **${playlist.title}** `)
-            playlist.items.forEach(async item => {
-                await videoHander(await ytdl.getInfo(item.shortUrl), message, vc, true);
+        try{
+            await ytpl(url).then(async playlist => {
+                message.channel.send(`📡｜正在加入播放清單 **${playlist.title}**`)
+                playlist.items.forEach(async item => {
+                    await videoHandler(await ytdl.getInfo(item.shortUrl), message, vc, true);
+                })
             })
-        })
+        }catch(err){
+            return message.channel.send(`❌｜此連結無效`)
+        }
     }
     else {
         let result = await searcher.search(args.join(" "), {type: "video"})
@@ -64,14 +71,14 @@ module.exports.run = async (client, message, args, queue, searcher) => {
             serverQueue.songs.push(song);
             if(serverQueue.songs.length === 1)
                 play(message.guild, serverQueue.songs[0])
-            
-            if(playlist) return;
+            if(playlist) return undefined;
 
             let dur = `\`${parseInt(song.vLength / 60)}:${song.vLength - 60 * parseInt(song.vLength / 60)}\``
             let msg = new Discord.MessageEmbed()
                 .setTitle("✅｜曲目已加入")
-                .addField(song.title, "______")
-                .addField("曲目時長："+ dur)
+                .addField(song.title, "-----------")
+                .addField("曲目時長：", dur)
+                .addField("Song Place", serverQueue.songs.lastIndexOf(song) + 1)
                 .setThumbnail(song.thumbnail)
                 .setColor("BLUE")
             return message.channel.send(msg);
@@ -80,13 +87,11 @@ module.exports.run = async (client, message, args, queue, searcher) => {
     function play(guild, song){
         const serverQueue = queue.get(guild.id);
         if(!song){
-        timer = setTimeout(function() {
-            serverQueue.txtChannel.send("👋｜沒事我就先離開囉~")
-            serverQueue.vChannel.leave();
-            queue.delete(guild.id);
-        }, 30000)
-            serverQueue.vChannel.leave();
-            queue.delete(guild.id);
+            timer = setTimeout(function() {
+                serverQueue.txtChannel.send("👋｜沒事我就先離開囉~")
+                serverQueue.vChannel.leave();
+                queue.delete(guild.id);
+            }, 30000)
             return;
         }
         const dispatcher = serverQueue.connection
@@ -98,15 +103,16 @@ module.exports.run = async (client, message, args, queue, searcher) => {
                 else if(serverQueue.loopall) {
                     serverQueue.songs.push(serverQueue.songs[0])
                     serverQueue.songs.shift();
+                    play(guild, serverQueue.songs[0]);
                 } else {
                     serverQueue.songs.shift();
+                    play(guild, serverQueue.songs[0]);
                 }
-                play(guild, serverQueue.songs[0]);
             })
             let dur = `\`${parseInt(serverQueue.songs[0].vLength / 60)}:${serverQueue.songs[0].vLength - 60 * parseInt(serverQueue.songs[0].vLength / 60)}\``
             let msg = new Discord.MessageEmbed()
                 .setTitle("🎵｜正在播放")
-                .addField(serverQueue.songs[0].title, "______")
+                .addField(serverQueue.songs[0].title, "-----------")
                 .addField("曲目時長：", dur)
                 .setThumbnail(serverQueue.songs[0].thumbnail)
                 .setColor("BLUE")

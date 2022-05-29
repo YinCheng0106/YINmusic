@@ -11,7 +11,7 @@ module.exports.run = async (client, message, args, queue, searcher) => {
             serverQueue.loopone = false;
 
             if(serverQueue.loopall === true)
-                message.channel.send("已開啟 重複播放 *|||* ")
+                message.channel.send("已開啟 重複播放 *列表中的歌曲* ")
             else 
                 message.channel.send("已關閉 重複播放 *列表中的歌曲*")
             break;

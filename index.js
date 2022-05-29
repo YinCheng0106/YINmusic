@@ -2,8 +2,11 @@ const Discord = require('discord.js');
 const client = new Discord.Client();
 const ytdl = require('ytdl-core');
 //const {token} = require('./setting.json');
-const { YTSearcher } = require('ytsearcher');
 const fs =require('fs');
+//const { YTSearcher } = require('yt-search')//
+
+const { YTSearcher } = require('ytsearcher');
+
 
 client.commands = new Discord.Collection();
 client.aliases = new Discord.Collection();

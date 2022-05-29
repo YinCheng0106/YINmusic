@@ -7,7 +7,6 @@ module.exports.run = async (client, message, args, queue, searcher) => {
     if(message.member.voice.channel != message.guild.me.voice.channel)
         return message.channel.send("❓｜你不在機器人所在的語音");
     
-    
     let currentPage = 0;
 
     const embeds = embedsGenerator(serverQueue);
