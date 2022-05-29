@@ -34,6 +34,13 @@ const queue = new Map();
 
 client.on('ready',() => {
     console.log('>>機器人啟動完成<<');
+    client.user.setPresence({
+        status: "dnd",
+        game: {
+            name: `${len(client.guilds)} 個伺服器 ‖ YINmusic`,
+            type: "PLAYING"
+        }
+    });
 });
 
 client.on("message", async(message) => {
