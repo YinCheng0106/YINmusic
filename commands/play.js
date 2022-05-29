@@ -30,13 +30,14 @@ module.exports.run = async (client, message, args, queue, searcher) => {
             return message.channel.send("❌｜此播放清單無效");
         try {
             let songInfo = await ytdl.getInfo(result.first.url);
-            return videoHandler(songInfo, message, vc)
+            return videoHander(songInfo, message, vc)
             }catch(err){
-                message.channel.send(`Cannot queue song :c \n ${err} `)
+                message.channel.send(`❌｜此播放清單無法播放`)
                 console.log(err)
             }
-    //message.channel.send(`✅｜播放清單 **${playlist.title}** 加入完成`)
     }
+    //message.channel.send(`✅｜播放清單 **${playlist.title}** 加入完成`)
+            
     async function videoHander(songInfo, message, vc, playlist = false) {
         clearTimeout(timer);
         const serverQueue = queue.get(message.guild.id);
