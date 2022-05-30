@@ -34,7 +34,7 @@ const queue = new Map();
 
 client.on('ready',() => {
     console.log('>>機器人啟動完成<<');
-    client.user.setStatus('available')
+    client.user.setStatus('dnd')
     client.user.setPresence({
         game: {
             name: 'discord.js ‖ YINmusic',
