@@ -34,15 +34,14 @@ const queue = new Map();
 
 client.on('ready',() => {
     console.log('>>機器人啟動完成<<');
-/*
+    client.user.setStatus('available')
     client.user.setPresence({
-        status: "dnd",
         game: {
-            name: `${len(client.guilds)} 個伺服器 ‖ YINmusic`,
-            type: "PLAYING"
+            name: 'discord.js ‖ YINmusic',
+            type: "STREAMING",
+            url: "https://www.twitch.tv/yincheng0106"
         }
     });
-*/
 });
 
 client.on("message", async(message) => {
