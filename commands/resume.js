@@ -1,3 +1,4 @@
+/*
 module.exports.run = async (client, message, args, queue, searcher) => {
     const serverQueue = queue.get(message.guild.id)
 
@@ -18,3 +19,4 @@ module.exports.config = {
     name: "resume",
     aliases: ["r","re","rs","R","RE","RS","RESUME"]
 }
+*/
