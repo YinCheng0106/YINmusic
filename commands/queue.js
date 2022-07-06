@@ -1,59 +1,44 @@
-const Discord = require('discord.js');
+const { SlashCommandBuilder } = require("@discordjs/builders")
+const { MessageEmbed } = require("discord.js")
 
-module.exports.run = async (client, message, args, queue, searcher) => {
-    const serverQueue = queue.get(message.guild.id);
-    if(!serverQueue)
-        return message.channel.send("❌｜機器人未播放音樂");
-    if(message.member.voice.channel != message.guild.me.voice.channel)
-        return message.channel.send("❓｜你不在機器人所在的語音");
-    
-    let currentPage = 0;
+module.exports = {
+    data: new SlashCommandBuilder()
+    .setName("queue")
+    .setDescription("顯示待播清單")
+    .addNumberOption((option) => option.setName("page").setDescription("頁數").setMinValue(1)),
 
-    const embeds = embedsGenerator(serverQueue);
-
-    if(embeds.length === 0)
-        return message.channel.send("🈳｜待播清單是空的");
-
-    const queueEmbed = await message.channel.send(`📜｜待播清單 ${currentPage +1}/${embeds.length}`, embeds[currentPage])
-    await queueEmbed.react('⬅️');
-    await queueEmbed.react('➡️');
-
-    const reactionFilter = (reaction, user) => ['⬅️','➡️'].includes(reaction.emoji.name) && (message.author.id === user.id);
-    const collector = queueEmbed.createReactionCollector(reactionFilter);
-
-    collector.on('collect', (reaction, user) => {
-        if(reaction.emoji.name === '➡️') {
-            if(currentPage < embeds.length-1) {
-                currentPage += 1;
-                queueEmbed.edit(`📜｜待播清單 ${currentPage +1}/${embeds.length}`, embeds[currentPage])
-                message.reactions.resolve(reaction).users.remove(user)
-            }
-        }else if (reaction.emoji.name === '⬅️') {
-            if (currentPage !== 0) {
-                currentPage -= 1;
-                queueEmbed.edit(`📜｜待播清單 ${currentPage +1}/${embeds.length}`, embeds[currentPage])
-                message.reactions.resolve(reaction).users.remove(user)
-            }
+    run: async ({ client, interaction }) => {
+        const queue = client.player.getQueue(interaction.guildId)
+        if (!queue || !queue.playing){
+            return await interaction.editReply("❌｜機器人未播放音樂")
         }
-    })
-}
 
-function embedsGenerator(serverQueue) {
-    const embeds = [];
-    let songs = 11;
-    for(let i = 1; i <serverQueue.songs.length; i += 10) {
-        const current = serverQueue.songs.slice(i, songs);
-        songs += 10;
-        let j = i - 1;
-        const info = current.map(song => `[${++j}]｜[${song.title}](${song.url})`).join('\n');
-        const msg = new Discord.MessageEmbed()
-            .setDescription(`🎵｜正在播放 [${serverQueue.songs[0].title}](${serverQueue.songs[0].url})\n${info}`)
-        embeds.push(msg)
+        
+
+        const totalPages = Math.ceil(queue.tracks.length / 10) || 1
+        const page = (interaction.options.getNumber("page") || 1) - 1
+
+        if (page > totalPages) 
+            return await interaction.editReply(`❓｜沒那麼多頁，只有 ${totalPages} 頁而已...`)
+        
+        const queueString = queue.tracks.slice(page * 10, page * 10 + 10).map((song, i) => {
+            return `**[${page * 10 + i + 1}]** \`[${song.duration}]\` ${song.title}`
+        }).join("\n")
+
+        const currentSong = queue.current
+
+        await interaction.editReply({
+            embeds: [
+                new MessageEmbed()
+                    .setDescription(`**🎵｜正在播放**\n` + 
+                    (currentSong ? `\`[${currentSong.duration}]\` ${currentSong.title} ` : "None") +
+                    `\n\n**📜｜待播清單**\n${queueString}`
+                    )
+                    .setFooter({
+                        text: `頁數 [${page + 1}] 共 [${totalPages}] 頁`
+                    })
+                    .setThumbnail(currentSong.setThumbnail)
+            ]
+        })
     }
-    return embeds;
-}
-
-module.exports.config = {
-    name: "queue",
-    aliases: ["q", "qu","Q","QU","QUEUE"]
 }

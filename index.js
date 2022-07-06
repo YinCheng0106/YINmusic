@@ -1,59 +1,73 @@
-const Discord = require('discord.js');
-const client = new Discord.Client();
-const ytdl = require('ytdl-core');
-//const {token} = require('./setting.json');
-const fs =require('fs');
-//const { YTSearcher } = require('yt-search')//
+const Discord = require("discord.js")
+const dotenv = require("dotenv")
+const { REST } = require("@discordjs/rest")
+const { Routes } = require("discord-api-types/v9")
+const fs = require("fs")
+const { Player } = require("discord-player")
 
-const { YTSearcher } = require('ytsearcher');
+dotenv.config()
+const TOKEN = process.env.token
 
+const LOAD_SLASH = process.argv[2] == "load"
 
-client.commands = new Discord.Collection();
-client.aliases = new Discord.Collection();
+const CLIENT_ID = "978988746043187310"
+const GUILD_ID = "801113439023005717"
 
-const searcher = new YTSearcher({
-    key: process.env.yt_api,
-    revealed: true
-});
-
-fs.readdir("./commands/", (e, f) => {
-    if(e) return console.error(e);
-    f.forEach(file => {
-        if(!file.endsWith(".js")) return
-        console.log(`${file} 完成載入`)
-        let cmd = require(`./commands/${file}`);
-        let cmdName = cmd.config.name;
-        client.commands.set(cmdName, cmd)
-        cmd.config.aliases.forEach(alias => {
-            client.aliases.set(alias, cmdName);
-        })
-    })
+const client = new Discord.Client({
+    intents: [
+        "GUILDS",
+        "GUILD_VOICE_STATES",
+        "GUILD_INTEGRATIONS"
+    ]
 })
 
-const queue = new Map();
-
-client.on('ready',() => {
-    console.log('>>機器人啟動完成<<');
-});
-
-client.on("message", async(message) => {
-    const prefix = '!';
-
-    if(!message.content.startsWith(prefix)) return
-    
-    const args = message.content.slice(prefix.length).trim().split(/ +/g)
-    const command = args.shift().toLowerCase();
-
-    const cmd = client.commands.get(command) || client.commands.get(client.aliases.get(command));
-
-    if(!cmd) return
-
-    try {
-        cmd.run(client, message, args, queue, searcher);
-    }catch (err){
-        return console.error(err)
+client.slashcommands = new Discord.Collection()
+client.player = new Player(client, {
+    ytdlOptions: {
+        quality: "highestaudio",
+        highWaterMark: 1 << 25
     }
-        
 })
 
-client.login(process.env.token);
+let commands = []
+
+const slashFiles = fs.readdirSync("./YINLA_JS/commands").filter(file => file.endsWith(".js"))
+for (const file of slashFiles){
+    const slashcmd = require(`./commands/${file}`)
+    client.slashcommands.set(slashcmd.data.name, slashcmd)
+    if (LOAD_SLASH) commands.push(slashcmd.data.toJSON())
+}
+
+if (LOAD_SLASH) {
+    const rest = new REST({ version: "9" }).setToken(TOKEN)
+    console.log("Deploying slash commands")
+    rest.put(Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID), {body: commands})
+    .then(() => {
+        console.log("Successfully loaded")
+        process.exit(0)
+    })
+    .catch((err) => {
+        if (err){
+            console.log(err)
+            process.exit(1)
+        }
+    })
+}
+else {
+    client.on("ready", () => {
+        console.log(`Logged in as ${client.user.tag}`)
+    })
+    client.on("interactionCreate", (interaction) => {
+        async function handleCommand() {
+            if (!interaction.isCommand()) return
+
+            const slashcmd = client.slashcommands.get(interaction.commandName)
+            if (!slashcmd) interaction.reply("Not a valid slash command")
+
+            await interaction.deferReply()
+            await slashcmd.run({ client, interaction })
+        }
+        handleCommand()
+    })
+    client.login(TOKEN)
+}

@@ -1,28 +1,15 @@
-module.exports.run = async (client, message, args, queue, searcher) => {
-    const serverQueue = queue.get(message.guild.id);
+const { SlashCommandBuilder } = require("@discordjs/builders")
 
-    if(message.member.voice.channel!= message.guild.me.voice.channel)
-            return message.channel.send("❓｜你不在機器人所在的語音");
-            
-    if(!serverQueue)
-        return message.channel.send("❌｜機器人未使用");
+module.exports = {
+	data: new SlashCommandBuilder().setName("shuffle").setDescription("打亂待播清單"),
+	run: async ({ client, interaction }) => {
+		const queue = client.player.getQueue(interaction.guildId)
 
-    shuffleQueue(serverQueue.songs, message);
-}
-function shuffleQueue (squeue, message){
-    for (let i = squeue.length - 1; i > 0; i--){
-        let j = Math.round(Math.random() * (i + 1));
-        while(j == 0) 
-            j = Math.round(Math.random() * (i + 1));
-        const temp = squeue[i];
-        squeue[i] = squeue[j];
-        squeue[j] = temp;
-    }
-    message.channel.send("🔀｜待播清單 已打亂");
-    return squeue;
-}
+		if (!queue) return await interaction.editReply("❌｜機器人未使用")
 
-module.exports.config = {
-    name: "shuffle",
-    aliases: ["sf","shuf","SF","SHUF","SHUFFLE"]
+		
+
+		queue.shuffle()
+        await interaction.editReply(`🔀｜待播清單 已打亂 \`${queue.tracks.length}\` 首`)
+	},
 }

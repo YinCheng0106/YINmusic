@@ -1,15 +1,21 @@
-module.exports.run = async (client, message, args, queue, searcher) => {
-    const serverQueue = queue.get(message.guild.id)
+const { SlashCommandBuilder } = require("@discordjs/builders")
+const { MessageEmbed } = require("discord.js")
 
-    if(message.member.voice.channel!= message.guild.me.voice.channel)
-        return message.channel.send("❓｜你不在機器人所在的語音");
+module.exports = {
+	data: new SlashCommandBuilder().setName("skip").setDescription("跳過歌曲"),
+	run: async ({ client, interaction }) => {
+		const queue = client.player.getQueue(interaction.guildId)
+
+		if (!queue) return await interaction.editReply("❌｜機器人未使用")
         
-    if(!serverQueue)
-        return message.channel.send("❌｜機器人未使用");
-    serverQueue.connection.dispatcher.end();
-}
+        
+        const currentSong = queue.current
 
-module.exports.config = {
-    name: "skip",
-    aliases: ["sk","SK","SKIP"]
+		queue.skip()
+        await interaction.editReply({
+            embeds: [
+                new MessageEmbed().setDescription(`已跳過 ${currentSong.title} `).setThumbnail(currentSong.thumbnail)
+            ]
+        })
+	},
 }

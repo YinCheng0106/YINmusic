@@ -1,17 +1,15 @@
-module.exports.run = async (client, message, args, queue, searcher) => {
-    const serverQueue = queue.get(message.guild.id)
+const { SlashCommandBuilder } = require("@discordjs/builders")
 
-    if(!serverQueue)
-        return message.channel.send("❌｜機器人未使用");
+module.exports = {
+	data: new SlashCommandBuilder().setName("quit").setDescription("中斷機器人連線"),
+	run: async ({ client, interaction }) => {
+		const queue = client.player.getQueue(interaction.guildId)
 
-    if(message.member.voice.channel != message.guild.me.voice.channel)
-        return message.channel.send("❓｜你不在機器人所在的語音");
-    
-        serverQueue.songs = [];
-    serverQueue.connection.dispatcher.end();
-}
+		if (!queue) return await interaction.editReply("❌｜機器人未使用")
 
-module.exports.config = {
-    name: "stop",
-    aliases: ["s","st","S","ST","STOP"]
+		
+
+		queue.destroy()
+        await interaction.editReply("👋｜不聽了喔...好吧...再見")
+	},
 }
