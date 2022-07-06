@@ -31,7 +31,7 @@ client.player = new Player(client, {
 
 let commands = []
 
-const slashFiles = fs.readdirSync("./YINLA_JS/commands").filter(file => file.endsWith(".js"))
+const slashFiles = fs.readdirSync("./commands").filter(file => file.endsWith(".js"))
 for (const file of slashFiles){
     const slashcmd = require(`./commands/${file}`)
     client.slashcommands.set(slashcmd.data.name, slashcmd)
