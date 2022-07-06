@@ -1,2 +1,2 @@
-worker1: node index.js load
-worker2: node index.js
+Worker node index.js load
+Worker node index.js
