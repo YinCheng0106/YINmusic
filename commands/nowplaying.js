@@ -20,7 +20,7 @@ module.exports = {
 		await interaction.editReply({
 			embeds: [new MessageEmbed()
             .setThumbnail(song.thumbnail)
-            .setDescription(`🎵｜正在播放 [${song.title}](${song.url})\n\n` + bar)
+            .setDescription(`🎵｜正在播放 [${song.title}](${song.url})\n\n` + bar + song.duration)
         ],
 		})
 	},

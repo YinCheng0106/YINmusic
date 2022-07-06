@@ -85,9 +85,9 @@ module.exports = {
             await queue.addTrack(song)
             embed
                 .setTitle("✅｜曲目已加入")
-                .addField(`**[${song.title}](${song.url})**`,"-----------")
+                .addField(`[${song.title}](${song.url})`,"-----------")
                 .setThumbnail(song.thumbnail)
-                .setFooter({ text: `曲目時長：[${song.duration}]`})
+                .setFooter({ text: `曲目時長：\`${song.duration}\``})
                 .setColor("BLUE")
 		}
         if (!queue.playing) await queue.play()

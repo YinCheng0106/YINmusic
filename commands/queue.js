@@ -19,10 +19,10 @@ module.exports = {
         const page = (interaction.options.getNumber("page") || 1) - 1
 
         if (page > totalPages) 
-            return await interaction.editReply(`❓｜沒那麼多頁，只有 ${totalPages} 頁而已...`)
+            return await interaction.editReply(`❓｜沒那麼多頁，只有 \`${totalPages}\` 頁而已...`)
         
         const queueString = queue.tracks.slice(page * 10, page * 10 + 10).map((song, i) => {
-            return `**[${page * 10 + i + 1}]** \`[${song.duration}]\` ${song.title}`
+            return `**[${page * 10 + i + 1}]** \`[${song.duration}]\` [${song.title}](${song.url})`
         }).join("\n")
 
         const currentSong = queue.current
@@ -31,7 +31,7 @@ module.exports = {
             embeds: [
                 new MessageEmbed()
                     .setDescription(`**🎵｜正在播放**\n` + 
-                    (currentSong ? `\`[${currentSong.duration}]\` ${currentSong.title} ` : "None") +
+                    (currentSong ? `\`[${currentSong.duration}]\` [${currentSong.title}](${currentSong.url}) ` : "None") +
                     `\n\n**📜｜待播清單**\n${queueString}`
                     )
                     .setFooter({
