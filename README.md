@@ -7,16 +7,15 @@
 
 |  指令   |  說明  |
 |  :----  | :----:  |
-|`!play [連結 or 曲名]`|播放|
-|`!pause`|暫停|
-|`!resume`|恢復播放|
-|`!skip`|跳過當前歌曲|
-|`!stop`|中斷機器人|
-|`!loop <all/one/off>`|循環播放 <列表中的歌曲 / 現在播放歌曲 / 關閉>|
-|`!shuffle`|隨機播放|
-|`!ping`|機器人狀態|
-
-
+|`/play song [連結]`| 播放單曲 |
+|`/play playlist [連結]`| 播放清單 |
+|`/play search [連結]`| 尋找單曲 並播放 |
+|`/pause`| 暫停 |
+|`/resume`| 恢復播放 |
+|`/skip`| 跳過當前歌曲 |
+|`/quit`| 中斷機器人 |
+|`/shuffle`| 隨機播放 |
+|`/ping`| 機器人狀態 (研究中) |
 
 
 ## 目標
@@ -35,7 +34,7 @@
 ----------
 # **作者**
 ## Yin Cheng
- <img src="https://i.imgur.com/TzmL9UQ.png" width="40%">
+ <img src="https://avatars.githubusercontent.com/u/99303523?v=4" width="20%">
 <https://twitter.com/Yin_Cheng0106>
 
 --------

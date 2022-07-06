@@ -21,7 +21,7 @@ module.exports = {
 		.addSubcommand((subcommand) =>
 			subcommand
 				.setName("search")
-				.setDescription("輸入 歌名 或 關鍵字 並搜尋播放")
+				.setDescription("輸入 `歌名` 或 `關鍵字` 並搜尋播放")
 				.addStringOption((option) =>
 					option.setName("searchterms").setDescription("關鍵字搜尋").setRequired(true)
 				)
@@ -48,11 +48,11 @@ module.exports = {
             const song = result.tracks[0]
             await queue.addTrack(song)
             embed
-                .setTitle("✅｜曲目已加入")
-                .addField(`**[${song.title}](${song.url})**`,"-----------")
+                .setTitle("🎵｜正在播放")
+                .addField(`[${song.title}](${song.url})`,"-----------")
                 .setThumbnail(song.thumbnail)
                 .setFooter({ text: `曲目時長：[${song.duration}]`})
-                .setColor("BLUE")
+                .setColor("RANDOM")
 
 		} else if (interaction.options.getSubcommand() === "playlist") {
             let url = interaction.options.getString("url")
@@ -70,7 +70,7 @@ module.exports = {
                 .setTitle(`✅｜已加入 \`${result.tracks.length}\` 首`)
                 .setDescription(`📜｜播放清單 [${playlist.title}](${playlist.url})`)
                 .setThumbnail(playlist.thumbnail)
-                .setColor("BLUE")
+                .setColor("RANDOM")
 		} else if (interaction.options.getSubcommand() === "search") {
             let url = interaction.options.getString("searchterms")
             const result = await client.player.search(url, {
@@ -85,7 +85,7 @@ module.exports = {
             await queue.addTrack(song)
             embed
                 .setTitle("✅｜曲目已加入")
-                .addField(`[${song.title}](${song.url})`,"-----------")
+                .setFields(`[${song.title}](${song.url})`,"-----------")
                 .setThumbnail(song.thumbnail)
                 .setFooter({ text: `曲目時長：\`${song.duration}\``})
                 .setColor("BLUE")
