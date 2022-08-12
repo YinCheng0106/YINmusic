@@ -43,7 +43,7 @@ module.exports = {
                 searchEngine: QueryType.YOUTUBE_VIDEO
             })
             if (result.tracks.length === 0)
-                return interaction.editReply("`❌｜此連結無效")
+                return interaction.editReply("❌｜此連結無效")
             
             const song = result.tracks[0]
             await queue.addTrack(song)
